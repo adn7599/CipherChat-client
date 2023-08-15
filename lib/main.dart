@@ -1,7 +1,11 @@
+import 'package:cipher_chat/Screens/Messages/messages_list.dart';
+import 'package:cipher_chat/Screens/Messages/messages_main.dart';
 import 'package:cipher_chat/Screens/User/login.dart';
 import 'package:cipher_chat/Screens/User/register.dart';
 import 'package:cipher_chat/Screens/User/welcome.dart';
 import 'package:flutter/material.dart';
+
+import 'globalState/Messages.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,11 +42,17 @@ class MyApp extends StatelessWidget {
             bodyMedium: TextStyle(fontSize: 22),
             labelLarge: TextStyle(fontSize: 16)),
       ),
-      initialRoute: '/',
+      // initialRoute: '/',
+      initialRoute: '/main',
       routes: {
         '/': (context) => WelcomeScreen(),
         '/register': (context) => RegisterScreen(),
         '/login': (context) => LoginScreen(),
+        '/main': (context) => MessagesMainScreen(),
+        '/messages': (context) {
+          return MessagesListScreen(
+              contact: ModalRoute.of(context)!.settings.arguments as Contact);
+        }
       },
     );
   }
