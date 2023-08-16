@@ -38,68 +38,66 @@ class MessageListState extends State<MessagesListScreen> {
           ],
         ),
       ])),
-      body: Stack(
+      body: Column(
         children: [
-          ListView.builder(
-              itemCount: widget.contact.messages.length,
-              shrinkWrap: true,
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                return Container(
-                  padding: const EdgeInsets.only(
-                      left: 14, right: 14, top: 10, bottom: 10),
-                  child: Align(
-                    alignment:
-                        (widget.contact.messages[index].type == "received"
-                            ? Alignment.topLeft
-                            : Alignment.topRight),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20),
-                        color:
-                            (widget.contact.messages[index].type == "received"
-                                ? Colors.grey.shade200
-                                : Colors.black),
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        widget.contact.messages[index].body,
-                        style: TextStyle(
-                            fontSize: 15,
-                            color: widget.contact.messages[index].type ==
-                                    "received"
-                                ? Colors.black
-                                : Colors.white),
-                      ),
-                    ),
-                  ),
-                );
-              }),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              decoration: const BoxDecoration(
-                border:
-                    Border(top: BorderSide(color: Colors.black, width: 0.7)),
-              ),
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: const InputDecoration(
-                        hintText: 'Write your message..',
+          Expanded(
+            child: ListView.builder(
+                itemCount: widget.contact.messages.length,
+                shrinkWrap: true,
+                padding: const EdgeInsets.only(top: 10, bottom: 10),
+                itemBuilder: (context, index) {
+                  return Container(
+                    padding: const EdgeInsets.only(
+                        left: 14, right: 14, top: 10, bottom: 10),
+                    child: Align(
+                      alignment:
+                          (widget.contact.messages[index].type == "received"
+                              ? Alignment.topLeft
+                              : Alignment.topRight),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color:
+                              (widget.contact.messages[index].type == "received"
+                                  ? Colors.grey.shade200
+                                  : Colors.black),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          widget.contact.messages[index].body,
+                          style: TextStyle(
+                              fontSize: 15,
+                              color: widget.contact.messages[index].type ==
+                                      "received"
+                                  ? Colors.black
+                                  : Colors.white),
+                        ),
                       ),
                     ),
+                  );
+                }),
+          ),
+          Container(
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.black, width: 0.7)),
+              color: Colors.white,
+            ),
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    decoration: const InputDecoration(
+                      hintText: 'Write your message..',
+                    ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.send),
-                  ),
-                ],
-              ),
+                ),
+                IconButton(
+                  onPressed: () {},
+                  icon: const Icon(Icons.send),
+                ),
+              ],
             ),
           ),
         ],

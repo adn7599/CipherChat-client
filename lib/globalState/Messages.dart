@@ -1,36 +1,38 @@
 import 'package:uuid/uuid.dart';
 
 class Message {
-  late String uuid;
   late DateTime time;
   String type;
 
   String body;
 
-  Message({required this.type, required this.body}) {
-    this.time = DateTime.now();
-    this.uuid = Uuid().v4();
+  Message({required this.type, required this.body, required this.time}) {}
+
+  Message.New({required this.type, required this.body}) {
+    time = DateTime.now();
   }
 }
 
 class Contact {
   String name;
   String profilePic = '';
+  String publickey;
 
   List<Message> messages = <Message>[
-    Message(type: 'sent', body: 'text1'),
-    Message(type: 'sent', body: 'text2'),
-    Message(type: 'received', body: 'text2'),
-    Message(type: 'received', body: 'text3'),
-    Message(type: 'sent', body: 'text4'),
-    Message(type: 'received', body: 'text5'),
-    Message(type: 'received', body: 'text5'),
-    Message(type: 'received', body: 'text5'),
-    Message(type: 'received', body: 'text5'),
-    Message(type: 'received', body: 'lorem ipsum'),
+    Message.New(type: 'sent', body: 'text1'),
+    Message.New(type: 'sent', body: 'text2'),
+    Message.New(type: 'received', body: 'text2'),
+    Message.New(type: 'received', body: 'text3'),
+    Message.New(type: 'sent', body: 'text4'),
+    Message.New(type: 'received', body: 'text5'),
+    Message.New(type: 'received', body: 'text5'),
+    Message.New(type: 'received', body: 'text5'),
+    Message.New(type: 'received', body: 'text5'),
+    Message.New(type: 'received', body: 'lorem ipsum'),
   ];
 
-  Contact({required this.name, required this.profilePic});
+  Contact(
+      {required this.name, required this.profilePic, required this.publickey});
 
   Message getLatestMessage() {
     return messages.last;
