@@ -12,8 +12,8 @@ class MessagesNewScreen extends StatefulWidget {
 class _MessageNewScreenState extends State<MessagesNewScreen> {
   final TextEditingController _searchController = TextEditingController();
   final List<Contact> results = [
-    Contact(name: 'advait', profilePic: ''),
-    Contact(name: 'naik', profilePic: ''),
+    Contact(name: 'advait', profilePic: '', publickey: ''),
+    Contact(name: 'naik', profilePic: '', publickey: ''),
   ];
 
   @override
