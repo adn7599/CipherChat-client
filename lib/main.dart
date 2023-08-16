@@ -53,7 +53,7 @@ class MyApp extends StatelessWidget {
         '/messages': (context) {
           return MessagesListScreen(
               //contact: ModalRoute.of(context)!.settings.arguments as Contact);
-              contact: Contact(name: 'advait', profilePic: ''));
+              contact: Contact(name: 'advait', profilePic: '', publickey: ''));
         },
         '/newMessage': (context) => MessagesNewScreen(),
       },

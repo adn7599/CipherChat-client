@@ -11,8 +11,8 @@ class MessagesMainScreen extends StatefulWidget {
 
 class _MessagesMainState extends State<MessagesMainScreen> {
   final List<Contact> contacts = <Contact>[
-    Contact(name: 'advait', profilePic: ''),
-    Contact(name: 'naik', profilePic: ''),
+    Contact(name: 'advait', profilePic: '', publickey: ''),
+    Contact(name: 'naik', profilePic: '', publickey: ''),
   ];
 
   @override
