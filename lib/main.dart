@@ -1,5 +1,6 @@
 import 'package:cipher_chat/Screens/Messages/messages_list.dart';
 import 'package:cipher_chat/Screens/Messages/messages_main.dart';
+import 'package:cipher_chat/Screens/Messages/messages_new.dart';
 import 'package:cipher_chat/Screens/User/login.dart';
 import 'package:cipher_chat/Screens/User/register.dart';
 import 'package:cipher_chat/Screens/User/welcome.dart';
@@ -51,8 +52,10 @@ class MyApp extends StatelessWidget {
         '/main': (context) => MessagesMainScreen(),
         '/messages': (context) {
           return MessagesListScreen(
-              contact: ModalRoute.of(context)!.settings.arguments as Contact);
-        }
+              //contact: ModalRoute.of(context)!.settings.arguments as Contact);
+              contact: Contact(name: 'advait', profilePic: ''));
+        },
+        '/newMessage': (context) => MessagesNewScreen(),
       },
     );
   }

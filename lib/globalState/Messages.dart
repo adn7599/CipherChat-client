@@ -3,12 +3,11 @@ import 'package:uuid/uuid.dart';
 class Message {
   late String uuid;
   late DateTime time;
-  String sender;
-  String receiver;
+  String type;
 
   String body;
 
-  Message({required this.sender, required this.receiver, required this.body}) {
+  Message({required this.type, required this.body}) {
     this.time = DateTime.now();
     this.uuid = Uuid().v4();
   }
@@ -19,12 +18,16 @@ class Contact {
   String profilePic = '';
 
   List<Message> messages = <Message>[
-    Message(sender: 'me', receiver: 'you', body: 'text1'),
-    Message(sender: 'me', receiver: 'you', body: 'text2'),
-    Message(sender: 'me', receiver: 'you', body: 'text3'),
-    Message(sender: 'you', receiver: 'me', body: 'text4'),
-    Message(sender: 'you', receiver: 'me', body: 'text4'),
-    Message(sender: 'me', receiver: 'you', body: 'text4'),
+    Message(type: 'sent', body: 'text1'),
+    Message(type: 'sent', body: 'text2'),
+    Message(type: 'received', body: 'text2'),
+    Message(type: 'received', body: 'text3'),
+    Message(type: 'sent', body: 'text4'),
+    Message(type: 'received', body: 'text5'),
+    Message(type: 'received', body: 'text5'),
+    Message(type: 'received', body: 'text5'),
+    Message(type: 'received', body: 'text5'),
+    Message(type: 'received', body: 'lorem ipsum'),
   ];
 
   Contact({required this.name, required this.profilePic});

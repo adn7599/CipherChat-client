@@ -41,9 +41,10 @@ class _MessagesMainState extends State<MessagesMainScreen> {
                               color: Colors.white, size: 40.0),
                         ),
                         const SizedBox(
-                          width: 8.0,
+                          width: 12.0,
                         ),
                         Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(contacts[index].name),
                             Text(
@@ -66,7 +67,9 @@ class _MessagesMainState extends State<MessagesMainScreen> {
                 );
               }),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.pushNamed(context, '/newMessage');
+        },
         backgroundColor: Colors.black,
         child: const Icon(Icons.message),
       ),
