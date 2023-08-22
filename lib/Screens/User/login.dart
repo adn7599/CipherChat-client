@@ -3,6 +3,10 @@ import 'package:cipher_chat/Components/FormInput.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
+  String serverHost;
+
+  LoginScreen({required this.serverHost});
+
   @override
   State<StatefulWidget> createState() {
     return _LoginScreenState();
@@ -19,11 +23,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text('Login'),
+        title: const Text('Login'),
       ),
       body: Center(
           child: Padding(
-        padding: EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(children: [
           const SizedBox(
             height: 32.0,

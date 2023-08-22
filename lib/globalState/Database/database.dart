@@ -1,7 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-import '../Messages.dart';
+import '../messages.dart';
 import '../user.dart';
 
 class MyDatabase {
@@ -27,48 +27,61 @@ class MyDatabase {
       version: 1,
       onCreate: (db, version) async {
         await db.execute(
-            'CREATE TABLE USER(username TEXT, token TEXT,master_key TEXT, public_key TEXT, private_key TEXT);');
+            'CREATE TABLE USER(username TEXT, token TEXT,master_key TEXT, public_key TEXT, private_key TEXT, server_host TEXT);');
         await db.execute(
-            'CREATE TABLE CONTACTS(id INT PRIMARY KEY AUTOINCREMENT,username TEXT, public_key TEXT);');
+            'CREATE TABLE CONTACTS(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT, public_key TEXT);');
         await db.execute(
-            'CREATE TABLE CHATS(id INT PRIMARY KEY AUTOINCREMENT,username TEXT,type TEXT, body TEXT, time INTEGER);');
+            'CREATE TABLE CHATS(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT,type TEXT, body TEXT, time INTEGER);');
       },
     );
   }
 
   Future<void> createUser(User user) async {
     await _database.rawInsert(
-        'INSERT INTO USER(username,token,master_key,public_key,private_key) VALUES(?,?,?,?,?);',
+        'INSERT INTO USER(username,token,master_key,public_key,private_key,server_host) VALUES(?,?,?,?,?,?);',
         [
           user.username,
           user.token,
           user.masterKey,
           user.publicKey,
-          user.privateKey
+          user.privateKey,
+          user.serverHost,
         ]);
   }
 
-  Future<User> getUser() async {
-    var res = (await _database.rawQuery('SELECT * FROM USER;'))[0];
+  Future<User?> getUser() async {
+    var result = (await _database.rawQuery('SELECT * FROM USER;'));
+    //var res = (await _database.rawQuery('SELECT * FROM USER;'))[0];
+
+    if (result.isEmpty) {
+      return null;
+    }
+
+    var res = result[0];
+
     return User(
       username: res['username'] as String,
       token: res['token'] as String,
       masterKey: res['master_key'] as String,
       publicKey: res['public_key'] as String,
       privateKey: res['private_key'] as String,
+      serverHost: res['server_host'] as String,
     );
   }
 
   Future<List<Contact>> _getContacts() async {
     var res = await _database.rawQuery('SELECT * FROM CONTACTS;');
+    List<Contact> cons = [];
 
-    List<Contact> cons = res.map((e) {
-      return Contact(
+    if (res.isEmpty) return cons;
+
+    for (var e in res) {
+      cons.add(Contact(
         name: e['username'] as String,
         profilePic: '',
         publickey: e['public_key'] as String,
-      );
-    }) as List<Contact>;
+      ));
+    }
 
     return cons;
   }

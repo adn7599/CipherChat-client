@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../globalState/Messages.dart';
+import '../../globalState/messages.dart';
 
 class MessagesListScreen extends StatefulWidget {
   final Contact contact;

@@ -1,5 +1,3 @@
-import 'package:uuid/uuid.dart';
-
 class Message {
   late DateTime time;
   String type;

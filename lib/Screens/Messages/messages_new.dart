@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../globalState/Messages.dart';
+import '../../globalState/messages.dart';
 
 class MessagesNewScreen extends StatefulWidget {
   @override

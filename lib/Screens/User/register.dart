@@ -1,9 +1,27 @@
+import 'dart:isolate';
+import 'dart:typed_data';
+
+import 'package:basic_utils/basic_utils.dart';
 import 'package:cipher_chat/Components/FormButton.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:pointycastle/block/aes.dart';
+import 'package:pointycastle/block/modes/cbc.dart';
+import 'package:pointycastle/digests/sha256.dart';
+import 'package:pointycastle/key_generators/api.dart';
+import 'package:pointycastle/key_generators/rsa_key_generator.dart';
+import 'package:pointycastle/padded_block_cipher/padded_block_cipher_impl.dart';
+import 'package:pointycastle/paddings/pkcs7.dart';
+import 'package:pointycastle/src/platform_check/platform_check.dart';
+import 'dart:convert';
 
 import '../../Components/FormInput.dart';
 
 class RegisterScreen extends StatefulWidget {
+  String serverHost;
+
+  RegisterScreen({required this.serverHost});
+
   @override
   State<StatefulWidget> createState() {
     return _RegisterScreenState();
@@ -16,6 +34,156 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _pass2Controller = TextEditingController();
   final TextEditingController _masterKey1Controller = TextEditingController();
   final TextEditingController _masterKey2Controller = TextEditingController();
+  Future<String>? registerFuture;
+
+  void _errorDialog(String msg) {
+    showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Invalid Input'),
+            content: SingleChildScrollView(
+                child: ListBody(
+              children: <Widget>[
+                Text(msg),
+              ],
+            )),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Okay'))
+            ],
+          );
+        });
+  }
+
+  void _showDialogRegister() {
+    showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return FutureBuilder<String>(
+              future: registerFuture,
+              builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  String title = 'Registration';
+                  String desc = 'Registration Successful';
+                  String? token;
+                  if (snapshot.hasError) {
+                    title = 'Registration Unsuccessful';
+                    desc = 'Error: ${snapshot.error}';
+                  } else {
+                    token = snapshot.data;
+                    print("Token : $token");
+                  }
+                  return AlertDialog(
+                    title: Text(title),
+                    content: Text(desc),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Okay'))
+                    ],
+                  );
+                } else {
+                  return const AlertDialog(
+                    title: Text('Registration'),
+                    content: Row(children: [
+                      CircularProgressIndicator(),
+                      SizedBox(
+                        width: 16.0,
+                      ),
+                      Text('Submitting'),
+                    ]),
+                    actions: [],
+                  );
+                }
+              });
+        });
+  }
+
+  Map<String, String> _generateKeyPair(String masterKey) {
+    final secureRandom = SecureRandom('Fortuna');
+    const bitLen = 2048;
+    secureRandom.seed(
+        KeyParameter(Platform.instance.platformEntropySource().getBytes(32)));
+
+    final keyGen = RSAKeyGenerator();
+    keyGen.init(ParametersWithRandom(
+        RSAKeyGeneratorParameters(BigInt.parse('65537'), bitLen, 64),
+        secureRandom));
+
+    final pair = keyGen.generateKeyPair();
+
+    final myPublic = pair.publicKey as RSAPublicKey;
+    final myPrivate = pair.privateKey as RSAPrivateKey;
+
+    final myPublicPem = CryptoUtils.encodeRSAPublicKeyToPem(myPublic);
+    final myPrivatePem = CryptoUtils.encodeRSAPrivateKeyToPem(myPrivate);
+
+    final sha256 = SHA256Digest();
+
+    final aesKey = sha256.process(
+        utf8.encode(masterKey) as Uint8List); //aes256 keysize is 256 bits
+
+    final aesIV = sha256
+        .process(aesKey)
+        .sublist(0, 16); //aes256 IV size is 128 bits (16 bytes)
+
+    final aesCbcEnc =
+        PaddedBlockCipherImpl(PKCS7Padding(), CBCBlockCipher(AESEngine()));
+
+    aesCbcEnc.init(
+        true,
+        PaddedBlockCipherParameters(
+            ParametersWithIV(KeyParameter(aesKey), aesIV), null));
+
+    final plainText = utf8.encode(myPrivatePem) as Uint8List;
+    final enc = aesCbcEnc.process(plainText);
+
+    final encPrivateBase64 = base64.encode(enc);
+
+    Map<String, String> ret = {};
+    ret['publicKey'] = myPublicPem;
+    ret['privateKey'] = encPrivateBase64;
+
+    return ret;
+  }
+
+  Future<String> _register() async {
+    // var keys =
+    //     await Isolate.run(() => _generateKeyPair(_masterKey1Controller.text));
+
+    var keys = _generateKeyPair(_masterKey1Controller.text);
+
+    var res = await http.post(
+      Uri.parse('${widget.serverHost}/auth/register'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "id": _usernameController.text,
+        "password": _pass1Controller.text,
+        "public_key": keys['publicKey']!,
+        "private_key": keys['privateKey']!,
+      }),
+    );
+
+    if (res.statusCode == 200) {
+      var resBody = jsonDecode(res.body);
+      return resBody['token'];
+    } else if (res.statusCode == 400) {
+      var resBody = jsonDecode(res.body);
+      throw Exception(resBody['error']);
+    } else {
+      throw Exception('Server responded with status code ${res.statusCode}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +239,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(
                 height: 32.0,
               ),
-              FormButton(title: 'Submit', onPress: () {})
+              FormButton(
+                  title: 'Submit',
+                  onPress: () {
+                    if (_usernameController.text == '' ||
+                        _masterKey1Controller.text == '' ||
+                        _masterKey2Controller.text == '' ||
+                        _pass1Controller.text == '' ||
+                        _pass2Controller.text == '') {
+                      _errorDialog('Empty input!');
+                      return;
+                    }
+
+                    if (_pass1Controller.text != _pass2Controller.text) {
+                      _errorDialog("Passwords don't match");
+                      return;
+                    }
+
+                    if (_masterKey1Controller.text !=
+                        _masterKey2Controller.text) {
+                      _errorDialog("Master keys don't match");
+                      return;
+                    }
+
+                    registerFuture = _register();
+                    _showDialogRegister();
+                  })
             ],
           ),
         ),
