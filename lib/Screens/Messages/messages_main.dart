@@ -1,4 +1,7 @@
+import 'package:cipher_chat/Screens/User/welcome.dart';
+import 'package:cipher_chat/globalState/global_state.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../globalState/messages.dart';
 
@@ -15,10 +18,60 @@ class _MessagesMainState extends State<MessagesMainScreen> {
     Contact(name: 'naik', profilePic: '', publickey: ''),
   ];
 
+  void _handlePopMenu(String value) {
+    switch (value) {
+      case 'settings':
+        break;
+      case 'logout':
+        showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Logout'),
+                content: const Text('Do you really wish to logout?'),
+                actions: <Widget>[
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('No')),
+                  TextButton(
+                      onPressed: () {
+                        Provider.of<GlobalState>(context, listen: false)
+                            .clearState()
+                            .then((_) {
+                          Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (context) => WelcomeScreen()),
+                              (route) => false);
+                        });
+                      },
+                      child: const Text('Yes'))
+                ],
+              );
+            });
+        break;
+      default:
+        print('Invalid option selected');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Messages')),
+      appBar: AppBar(
+        title: const Text('Messages'),
+        actions: <Widget>[
+          PopupMenuButton(
+              onSelected: _handlePopMenu,
+              itemBuilder: (BuildContext context) {
+                return ['settings', 'logout'].map((String choice) {
+                  return PopupMenuItem(value: choice, child: Text(choice));
+                }).toList();
+              })
+        ],
+      ),
       body: contacts.isEmpty
           ? const Center(child: Text('No Messages!'))
           : ListView.builder(

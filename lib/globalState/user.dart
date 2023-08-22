@@ -1,3 +1,5 @@
+import 'package:basic_utils/basic_utils.dart';
+
 class User {
   String username;
   String token;
@@ -6,6 +8,9 @@ class User {
   String privateKey;
   String serverHost;
 
+  RSAPublicKey? rsaPublicKey;
+  RSAPrivateKey? rsaPrivateKey;
+
   User({
     required this.username,
     required this.token,
@@ -13,5 +18,8 @@ class User {
     required this.publicKey,
     required this.privateKey,
     required this.serverHost,
-  });
+  }) {
+    rsaPrivateKey = CryptoUtils.rsaPrivateKeyFromPem(privateKey);
+    rsaPublicKey = CryptoUtils.rsaPublicKeyFromPem(publicKey);
+  }
 }

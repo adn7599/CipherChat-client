@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:basic_utils/basic_utils.dart';
 import 'package:cipher_chat/Components/FormButton.dart';
+import 'package:cipher_chat/Screens/Messages/messages_main.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pointycastle/block/aes.dart';
@@ -13,9 +14,12 @@ import 'package:pointycastle/key_generators/rsa_key_generator.dart';
 import 'package:pointycastle/padded_block_cipher/padded_block_cipher_impl.dart';
 import 'package:pointycastle/paddings/pkcs7.dart';
 import 'package:pointycastle/src/platform_check/platform_check.dart';
+import 'package:provider/provider.dart';
 import 'dart:convert';
 
 import '../../Components/FormInput.dart';
+import '../../globalState/global_state.dart';
+import '../../globalState/user.dart';
 
 class RegisterScreen extends StatefulWidget {
   String serverHost;
@@ -34,7 +38,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _pass2Controller = TextEditingController();
   final TextEditingController _masterKey1Controller = TextEditingController();
   final TextEditingController _masterKey2Controller = TextEditingController();
-  Future<String>? registerFuture;
+  Future<User>? registerFuture;
 
   void _errorDialog(String msg) {
     showDialog<void>(
@@ -65,19 +69,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
         context: context,
         barrierDismissible: false,
         builder: (context) {
-          return FutureBuilder<String>(
+          return FutureBuilder<User>(
               future: registerFuture,
-              builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+              builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
                   String title = 'Registration';
                   String desc = 'Registration Successful';
-                  String? token;
                   if (snapshot.hasError) {
                     title = 'Registration Unsuccessful';
-                    desc = 'Error: ${snapshot.error}';
+                    desc = '${snapshot.error}';
                   } else {
-                    token = snapshot.data;
-                    print("Token : $token");
+                    final User user = snapshot.data!;
+                    print("Token : ${user.token}");
+                    Provider.of<GlobalState>(context, listen: false)
+                        .addUser(user);
                   }
                   return AlertDialog(
                     title: Text(title),
@@ -85,7 +90,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     actions: [
                       TextButton(
                           onPressed: () {
-                            Navigator.of(context).pop();
+                            if (snapshot.hasError) {
+                              Navigator.of(context).pop();
+                            } else {
+                              Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          MessagesMainScreen()),
+                                  (route) => false);
+                            }
                           },
                           child: const Text('Okay'))
                     ],
@@ -150,12 +163,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     Map<String, String> ret = {};
     ret['publicKey'] = myPublicPem;
-    ret['privateKey'] = encPrivateBase64;
+    ret['privateKey'] = myPrivatePem;
+    ret['privateKeyEnc'] = encPrivateBase64;
 
     return ret;
   }
 
-  Future<String> _register() async {
+  Future<User> _register() async {
     // var keys =
     //     await Isolate.run(() => _generateKeyPair(_masterKey1Controller.text));
 
@@ -170,13 +184,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         "id": _usernameController.text,
         "password": _pass1Controller.text,
         "public_key": keys['publicKey']!,
-        "private_key": keys['privateKey']!,
+        "private_key": keys['privateKeyEnc']!,
       }),
     );
 
     if (res.statusCode == 200) {
       var resBody = jsonDecode(res.body);
-      return resBody['token'];
+      final String token = resBody['token'];
+      final User user = User(
+          username: _usernameController.text,
+          masterKey: _masterKey1Controller.text,
+          privateKey: keys['privateKey'] as String,
+          publicKey: keys['publicKey'] as String,
+          token: token,
+          serverHost: widget.serverHost);
+      return user;
     } else if (res.statusCode == 400) {
       var resBody = jsonDecode(res.body);
       throw Exception(resBody['error']);

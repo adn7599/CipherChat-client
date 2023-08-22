@@ -16,6 +16,12 @@ class GlobalState extends ChangeNotifier {
     _contacts = await _db!.loadChats();
   }
 
+  Future<void> clearState() async {
+    await _db!.clear();
+    _user = null;
+    _contacts = null;
+  }
+
   User? get user => _user;
   List<Contact>? get contacts => _contacts;
 
