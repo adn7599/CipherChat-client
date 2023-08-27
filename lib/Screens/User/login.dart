@@ -68,36 +68,56 @@ class _LoginScreenState extends State<LoginScreen> {
               future: _loginFuture,
               builder: (BuildContext context, AsyncSnapshot<User> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
-                  String title = 'Logging In';
-                  String desc = 'Login Successful';
                   if (snapshot.hasError) {
-                    title = 'Login Unsuccessful';
-                    desc = '${snapshot.error}';
+                    String title = 'Login Unsuccessful';
+                    String desc = '${snapshot.error}';
+
+                    return AlertDialog(
+                      title: Text(title),
+                      content: Text(desc),
+                      actions: [
+                        TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: const Text('Okay'))
+                      ],
+                    );
                   } else {
                     final User user = snapshot.data!;
+                    String title = 'Logging In';
+                    String desc = 'Login Successful';
                     print("Token : ${user.token}");
-                    Provider.of<GlobalState>(context, listen: false)
-                        .addUser(user);
-                  }
-                  return AlertDialog(
-                    title: Text(title),
-                    content: Text(desc),
-                    actions: [
-                      TextButton(
-                          onPressed: () {
-                            if (snapshot.hasError) {
-                              Navigator.of(context).pop();
-                            } else {
+                    final globalState =
+                        Provider.of<GlobalState>(context, listen: false);
+
+                    return AlertDialog(
+                      title: Text(title),
+                      content: Text(desc),
+                      actions: [
+                        TextButton(
+                            onPressed: () async {
+                              final userBackupOld = globalState.userBackupOld;
+                              if (userBackupOld != null) {
+                                //previous user found
+                                //checking if new login matches old user (to get backup chats)
+                                if (userBackupOld.username != user.username) {
+                                  //Clearing previous user's data
+                                  await globalState.clearAll();
+                                }
+                                //no previous user found
+                              }
+                              globalState.addUser(user);
                               Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                       builder: (context) =>
                                           MessagesMainScreen()),
                                   (route) => false);
-                            }
-                          },
-                          child: const Text('Okay'))
-                    ],
-                  );
+                            },
+                            child: const Text('Okay'))
+                      ],
+                    );
+                  }
                 } else {
                   return const AlertDialog(
                     title: Text('Logging In'),

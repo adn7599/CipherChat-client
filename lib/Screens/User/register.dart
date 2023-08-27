@@ -81,18 +81,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   } else {
                     final User user = snapshot.data!;
                     print("Token : ${user.token}");
-                    Provider.of<GlobalState>(context, listen: false)
-                        .addUser(user);
                   }
                   return AlertDialog(
                     title: Text(title),
                     content: Text(desc),
                     actions: [
                       TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (snapshot.hasError) {
                               Navigator.of(context).pop();
                             } else {
+                              final gs = Provider.of<GlobalState>(context,
+                                  listen: false);
+                              await gs.clearAll();
+                              await gs.addUser(snapshot.data!);
                               Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                       builder: (context) =>

@@ -1,3 +1,5 @@
+import 'package:cipher_chat/Screens/Messages/messages_list.dart';
+import 'package:cipher_chat/Screens/Messages/messages_new.dart';
 import 'package:cipher_chat/Screens/User/welcome.dart';
 import 'package:cipher_chat/globalState/global_state.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +15,6 @@ class MessagesMainScreen extends StatefulWidget {
 }
 
 class _MessagesMainState extends State<MessagesMainScreen> {
-  final List<Contact> contacts = <Contact>[
-    Contact(name: 'advait', profilePic: '', publickey: ''),
-    Contact(name: 'naik', profilePic: '', publickey: ''),
-  ];
-
   void _handlePopMenu(String value) {
     switch (value) {
       case 'settings':
@@ -38,7 +35,7 @@ class _MessagesMainState extends State<MessagesMainScreen> {
                   TextButton(
                       onPressed: () {
                         Provider.of<GlobalState>(context, listen: false)
-                            .clearState()
+                            .clearOnlyUser()
                             .then((_) {
                           Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
@@ -72,56 +69,78 @@ class _MessagesMainState extends State<MessagesMainScreen> {
               })
         ],
       ),
-      body: contacts.isEmpty
-          ? const Center(child: Text('No Messages!'))
-          : ListView.builder(
-              itemCount: contacts.length,
-              itemBuilder: (context, index) {
-                return InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(context, '/messages',
-                        arguments: contacts[index]);
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8.0),
-                    // decoration: BoxDecoration(border: BorderDirectional(bottom: BorderSide())),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          backgroundColor: Colors.black,
-                          radius: 26.0,
-                          child: Icon(Icons.person,
-                              color: Colors.white, size: 40.0),
-                        ),
-                        const SizedBox(
-                          width: 12.0,
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(contacts[index].name),
-                            Text(
-                              contacts[index].getLatestMessage().body,
-                              textAlign: TextAlign.left,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w100,
-                                fontSize: 16.0,
+      body: Consumer<GlobalState>(builder: (context, gs, child) {
+        final contacts = gs.contacts ?? <Contact>[];
+        contacts.sort((Contact first, Contact second) {
+          if (first.latestMessage.time.isAfter(second.latestMessage.time)) {
+            return -1;
+          } else {
+            return 1;
+          }
+        });
+        return contacts.isEmpty
+            ? const Center(child: Text('No Messages!'))
+            : ListView.builder(
+                itemCount: contacts.length,
+                itemBuilder: (context, index) {
+                  return InkWell(
+                    onTap: () {
+                      Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (context) {
+                        return MessagesListScreen(
+                            contact: contacts[index], isNew: false);
+                      }));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8.0),
+                      // decoration: BoxDecoration(border: BorderDirectional(bottom: BorderSide())),
+                      child: Row(
+                        children: [
+                          const CircleAvatar(
+                            backgroundColor: Colors.black,
+                            radius: 26.0,
+                            child: Icon(Icons.person,
+                                color: Colors.white, size: 40.0),
+                          ),
+                          const SizedBox(
+                            width: 12.0,
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                contacts[index].name,
+                                maxLines: 1,
                               ),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Text(contacts[index].getLatestTime(),
-                            style: const TextStyle(
-                                fontWeight: FontWeight.w100, fontSize: 16.0)),
-                      ],
+                              Container(
+                                width: 160,
+                                child: Text(
+                                  contacts[index].latestMessage.body,
+                                  textAlign: TextAlign.left,
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    fontWeight: FontWeight.w100,
+                                    fontSize: 16.0,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Text(contacts[index].getLatestTime,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w100, fontSize: 16.0)),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                });
+      }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/newMessage');
+          Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => MessagesNewScreen()));
         },
         backgroundColor: Colors.black,
         child: const Icon(Icons.message),

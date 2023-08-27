@@ -29,6 +29,8 @@ class MyDatabase {
         await db.execute(
             'CREATE TABLE USER(username TEXT, token TEXT,master_key TEXT, public_key TEXT, private_key TEXT, server_host TEXT);');
         await db.execute(
+            'CREATE TABLE USER_BACKUP(username TEXT, token TEXT,master_key TEXT, public_key TEXT, private_key TEXT, server_host TEXT);');
+        await db.execute(
             'CREATE TABLE CONTACTS(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT, public_key TEXT);');
         await db.execute(
             'CREATE TABLE CHATS(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT,type TEXT, body TEXT, time INTEGER);');
@@ -36,7 +38,11 @@ class MyDatabase {
     );
   }
 
-  Future<void> clear() async {
+  Future<void> clearOnlyUser() async {
+    await _database.rawDelete('DELETE FROM USER;');
+  }
+
+  Future<void> clearAll() async {
     await _database.rawDelete('DELETE FROM USER;');
     await _database.rawDelete('DELETE FROM CONTACTS;');
     await _database.rawDelete('DELETE FROM CHATS;');
@@ -53,10 +59,43 @@ class MyDatabase {
           user.privateKey,
           user.serverHost,
         ]);
+
+    await _database.rawDelete('DELETE FROM USER_BACKUP;');
+
+    await _database.rawInsert(
+        'INSERT INTO USER_BACKUP(username,token,master_key,public_key,private_key,server_host) VALUES(?,?,?,?,?,?);',
+        [
+          user.username,
+          user.token,
+          user.masterKey,
+          user.publicKey,
+          user.privateKey,
+          user.serverHost,
+        ]);
   }
 
   Future<User?> getUser() async {
     var result = (await _database.rawQuery('SELECT * FROM USER;'));
+    //var res = (await _database.rawQuery('SELECT * FROM USER;'))[0];
+
+    if (result.isEmpty) {
+      return null;
+    }
+
+    var res = result[0];
+
+    return User(
+      username: res['username'] as String,
+      token: res['token'] as String,
+      masterKey: res['master_key'] as String,
+      publicKey: res['public_key'] as String,
+      privateKey: res['private_key'] as String,
+      serverHost: res['server_host'] as String,
+    );
+  }
+
+  Future<User?> getUserBackupOld() async {
+    var result = (await _database.rawQuery('SELECT * FROM USER_BACKUP;'));
     //var res = (await _database.rawQuery('SELECT * FROM USER;'))[0];
 
     if (result.isEmpty) {
@@ -110,9 +149,11 @@ class MyDatabase {
       List<Message> messages = <Message>[];
       for (var msg in res) {
         messages.add(Message(
-          type: msg['type'] as String,
+          type: (msg['type'] as String) == 'R'
+              ? MessageType.Received
+              : MessageType.Sent,
           body: msg['body'] as String,
-          time: DateTime.fromMillisecondsSinceEpoch(['time'] as int),
+          time: DateTime.fromMillisecondsSinceEpoch(msg['time'] as int),
         ));
       }
 
@@ -123,7 +164,11 @@ class MyDatabase {
 
   Future<void> addMessage(Contact con, Message msg) async {
     await _database.rawInsert(
-        'INSERT INTO CHATS(username,type,body,time), VALUE(?,?,?,?);',
-        [con.name, msg.type, msg.body, msg.time.millisecondsSinceEpoch]);
+        'INSERT INTO CHATS(username,type,body,time) VALUES(?,?,?,?);', [
+      con.name,
+      msg.type == MessageType.Received ? 'R' : 'S',
+      msg.body,
+      msg.time.millisecondsSinceEpoch
+    ]);
   }
 }
