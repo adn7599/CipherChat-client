@@ -49,6 +49,8 @@ class MyDatabase {
   }
 
   Future<void> createUser(User user) async {
+    await _database.rawDelete('DELETE FROM USER;');
+
     await _database.rawInsert(
         'INSERT INTO USER(username,token,master_key,public_key,private_key,server_host) VALUES(?,?,?,?,?,?);',
         [

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cipher_chat/Screens/Messages/messages_main.dart';
 import 'package:cipher_chat/Screens/User/splash.dart';
 import 'package:cipher_chat/Screens/User/welcome.dart';
@@ -29,6 +31,13 @@ class MyAppState extends State<MyApp> {
       print('User not found');
     } else {
       print('User found');
+      //connecting to the websocket
+      try {
+        await _gState.initMessageWebSocket();
+      } on WebSocketException {
+        await _gState.clearOnlyUser();
+        throw Exception('Websocket exception');
+      }
     }
   }
 
@@ -36,6 +45,12 @@ class MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     loadStateFuture = loadState();
+  }
+
+  @override
+  void dispose() {
+    _gState.closeMessageWebSocket();
+    super.dispose();
   }
 
   @override
@@ -76,6 +91,10 @@ class MyAppState extends State<MyApp> {
                   if (_gState.user == null) {
                     return WelcomeScreen();
                   } else {
+                    if (snapshot.hasError) {
+                      //Websocket or some other error
+                      return WelcomeScreen();
+                    }
                     return MessagesMainScreen();
                   }
                 } else {

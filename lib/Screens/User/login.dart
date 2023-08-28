@@ -107,7 +107,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 }
                                 //no previous user found
                               }
-                              globalState.addUser(user);
+                              await globalState.addUser(user);
+                              await globalState.initMessageWebSocket();
                               Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                       builder: (context) =>

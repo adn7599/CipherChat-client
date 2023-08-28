@@ -33,15 +33,16 @@ class _MessagesMainState extends State<MessagesMainScreen> {
                       },
                       child: const Text('No')),
                   TextButton(
-                      onPressed: () {
-                        Provider.of<GlobalState>(context, listen: false)
-                            .clearOnlyUser()
-                            .then((_) {
-                          Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                  builder: (context) => WelcomeScreen()),
-                              (route) => false);
-                        });
+                      onPressed: () async {
+                        final gs =
+                            Provider.of<GlobalState>(context, listen: false);
+                        await gs.clearOnlyUser();
+                        await gs.closeMessageWebSocket();
+
+                        Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                                builder: (context) => WelcomeScreen()),
+                            (route) => false);
                       },
                       child: const Text('Yes'))
                 ],

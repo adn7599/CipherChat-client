@@ -95,6 +95,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   listen: false);
                               await gs.clearAll();
                               await gs.addUser(snapshot.data!);
+
+                              await gs.initMessageWebSocket();
+
                               Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                       builder: (context) =>

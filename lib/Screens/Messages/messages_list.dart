@@ -30,10 +30,10 @@ class MessageListState extends State<MessagesListScreen> {
         await gs.addContact(widget.contact);
         _sentFirstMsg = true;
       }
-      await gs.addMessage(
+      await gs.sendMessage(
           widget.contact, Message.New(type: MessageType.Sent, body: msg));
     } else {
-      await gs.addMessage(
+      await gs.sendMessage(
           widget.contact, Message.New(type: MessageType.Sent, body: msg));
     }
   }
