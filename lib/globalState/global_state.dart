@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:cipher_chat/globalState/Database/database.dart';
+import 'package:cipher_chat/globalState/crypto/crypto.dart';
 import 'package:cipher_chat/globalState/user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -176,10 +177,31 @@ class GlobalState extends ChangeNotifier {
         conIndex = _contacts.length - 1;
       }
       final con = _contacts[conIndex];
+
+      final msgJsonMap = jsonDecode(message);
+
+      final myReceiver = ReceivePort();
+      await Isolate.spawn(decryptMessage, {
+        "sendPort": myReceiver.sendPort,
+        "myPrivateKey": _user!.privateKey,
+        "conPublicKey": con.publickey,
+        "token": msgJsonMap['token'],
+        "message": msgJsonMap['message'],
+        "sign": msgJsonMap['sign'],
+      });
+      final decResult = await myReceiver.first;
+
+      debugPrint('Decrypted result from isolate: $decResult');
+
+      if (decResult['error'] == 'true') {
+        continue;
+      }
+
       final msg = Message(
           type: MessageType.Received,
-          body: message,
-          time: DateTime.fromMillisecondsSinceEpoch(int.parse(sendTime)));
+          body: decResult['message'],
+          time: DateTime.fromMillisecondsSinceEpoch(
+              int.parse(decResult['time'])));
       addMessage(con, msg);
     }
     notifyListeners();
@@ -226,10 +248,32 @@ class GlobalState extends ChangeNotifier {
         conIndex = _contacts.length - 1;
       }
       final con = _contacts[conIndex];
+      //decrypting message
+
+      final msgJsonMap = jsonDecode(message);
+
+      final myReceiver = ReceivePort();
+      await Isolate.spawn(decryptMessage, {
+        "sendPort": myReceiver.sendPort,
+        "myPrivateKey": _user!.privateKey,
+        "conPublicKey": con.publickey,
+        "token": msgJsonMap['token'],
+        "message": msgJsonMap['message'],
+        "sign": msgJsonMap['sign'],
+      });
+      final decResult = await myReceiver.first;
+
+      debugPrint('Decrypted result from isolate: $decResult');
+
+      if (decResult['error'] == 'true') {
+        return;
+      }
+
       final msg = Message(
           type: MessageType.Received,
-          body: message,
-          time: DateTime.fromMillisecondsSinceEpoch(int.parse(sendTime)));
+          body: decResult['message'],
+          time: DateTime.fromMillisecondsSinceEpoch(
+              int.parse(decResult['time'])));
       addMessage(con, msg);
       notifyListeners();
     }
@@ -239,10 +283,22 @@ class GlobalState extends ChangeNotifier {
     if (_messageWsChannel == null) {
       return;
     }
+    final myReceiver = ReceivePort();
+    await Isolate.spawn(encryptMessage, {
+      "sendPort": myReceiver.sendPort,
+      "myPrivateKey": _user!.privateKey,
+      "conPublicKey": con.publickey,
+      "message": msg.body,
+      "messageTime": msg.time.millisecondsSinceEpoch.toString(),
+    });
+    final encResult = await myReceiver.first;
+    debugPrint('Encryption result from isolate: $encResult');
+    final encMsgJson = jsonEncode(encResult);
+
     final json = jsonEncode({
       "receiver": con.name,
       "send_time": msg.time.millisecondsSinceEpoch.toString(),
-      "message": msg.body,
+      "message": encMsgJson,
     });
     _messageWsChannel!.sink.add(json);
     await addMessage(con, msg);
