@@ -36,6 +36,7 @@ class _MessagesMainState extends State<MessagesMainScreen> {
                       onPressed: () async {
                         final gs =
                             Provider.of<GlobalState>(context, listen: false);
+                        gs.cancelReconnectIsolate();
                         await gs.clearOnlyUser();
                         await gs.closeMessageWebSocket();
 
@@ -71,6 +72,35 @@ class _MessagesMainState extends State<MessagesMainScreen> {
         ],
       ),
       body: Consumer<GlobalState>(builder: (context, gs, child) {
+        if (gs.user == null) {
+          //Websocket connection token expired; need to login again
+          Future.delayed(const Duration(seconds: 3), () {
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Logout'),
+                    content: const Text('Your token has expired login again!'),
+                    actions: <Widget>[
+                      TextButton(
+                          onPressed: () async {
+                            final gs = Provider.of<GlobalState>(context,
+                                listen: false);
+                            await gs.clearOnlyUser();
+                            await gs.closeMessageWebSocket();
+
+                            Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                    builder: (context) => WelcomeScreen()),
+                                (route) => false);
+                          },
+                          child: const Text('Okay'))
+                    ],
+                  );
+                });
+          });
+        }
+
         final contacts = gs.contacts ?? <Contact>[];
         contacts.sort((Contact first, Contact second) {
           if (first.latestMessage.time.isAfter(second.latestMessage.time)) {

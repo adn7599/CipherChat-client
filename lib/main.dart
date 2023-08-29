@@ -34,9 +34,14 @@ class MyAppState extends State<MyApp> {
       //connecting to the websocket
       try {
         await _gState.initMessageWebSocket();
-      } on WebSocketException {
+      } on WebSocketException catch (e) {
+        debugPrint('WebSocketException Exception message: ${e.message}');
         await _gState.clearOnlyUser();
         throw Exception('Websocket exception');
+      } on SocketException catch (e) {
+        debugPrint(
+            'Socket Exception message (unable to connect): ${e.message}');
+        _gState.launchReconnectIsolate();
       }
     }
   }

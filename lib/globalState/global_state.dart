@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:cipher_chat/globalState/Database/database.dart';
 import 'package:cipher_chat/globalState/user.dart';
@@ -20,7 +21,7 @@ class GlobalState extends ChangeNotifier {
 
   WebSocketChannel? _messageWsChannel;
   StreamSubscription<dynamic>? _listenerSub;
-
+  Isolate? _reconnectMessageWsIsolate;
   MyDatabase? _db;
 
   Future<void> loadState() async {
@@ -87,9 +88,41 @@ class GlobalState extends ChangeNotifier {
     // await _listenerSub?.cancel();
     _listenerSub = _messageWsChannel!.stream.listen((message) {
       _receiveMessageListener(message);
+    }, onDone: () async {
+      debugPrint("Disconnected");
+      _messageWsChannel = null;
+      launchReconnectIsolate();
     });
 
     // _messageWsChannel?.sink.
+  }
+
+  Future<void> launchReconnectIsolate() async {
+    final receivePort = ReceivePort();
+
+    _reconnectMessageWsIsolate =
+        await Isolate.spawn(_reconnectIsolate, receivePort.sendPort);
+    final SendPort isolateSendPort = await receivePort.first;
+    final newReceivePort = ReceivePort();
+    final newSendPort = newReceivePort.sendPort;
+
+    isolateSendPort.send([_user!.serverHost, newSendPort]);
+
+    newReceivePort.listen((message) {
+      if ((message as String) == 'server running') {
+        debugPrint('server is up');
+        initMessageWebSocket().catchError((err) {
+          if (err is SocketException) {
+            launchReconnectIsolate();
+          } else {
+            //WebSocketException
+            //login again
+            _user = null;
+            notifyListeners();
+          }
+        });
+      }
+    });
   }
 
   Future<void> closeMessageWebSocket() async {
@@ -100,6 +133,14 @@ class GlobalState extends ChangeNotifier {
       // await _messageWsChannel?.sink.done;
     } on Exception catch (_, e) {
       print("exception while disconnecting ws: $e");
+    }
+  }
+
+  void cancelReconnectIsolate() async {
+    try {
+      _reconnectMessageWsIsolate?.kill(priority: Isolate.immediate);
+    } catch (e) {
+      debugPrint('Error while killing reconnect isolate: $e');
     }
   }
 
@@ -195,6 +236,9 @@ class GlobalState extends ChangeNotifier {
   }
 
   Future<void> sendMessage(Contact con, Message msg) async {
+    if (_messageWsChannel == null) {
+      return;
+    }
     final json = jsonEncode({
       "receiver": con.name,
       "send_time": msg.time.millisecondsSinceEpoch.toString(),
@@ -203,6 +247,32 @@ class GlobalState extends ChangeNotifier {
     _messageWsChannel!.sink.add(json);
     await addMessage(con, msg);
     notifyListeners();
+  }
+}
+
+Future<void> _reconnectIsolate(SendPort gsSendPort) async {
+  debugPrint('Running reconnect isolate');
+
+  final ReceivePort myReceivePort = ReceivePort();
+  final SendPort mySendPort = myReceivePort.sendPort;
+  gsSendPort.send(mySendPort);
+  final sentMsg = await myReceivePort.first;
+  final String serverHost = sentMsg[0];
+  final SendPort gsNewSendPort = sentMsg[1];
+
+  while (true) {
+    await Future.delayed(const Duration(seconds: 1));
+    debugPrint('Trying to reconnect websocket');
+
+    try {
+      final res = await http.get(Uri.parse('$serverHost/ping'));
+      if (res.statusCode == 200) {
+        gsNewSendPort.send('server running');
+        break;
+      }
+    } catch (e) {
+      debugPrint('Reconnect exception: $e');
+    }
   }
 }
 

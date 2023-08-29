@@ -76,10 +76,10 @@ class MessageListState extends State<MessagesListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.contact.name),
-            const Text(
-              'Online',
-              style: TextStyle(fontSize: 12.0),
-            ),
+            // const Text(
+            //   'Online',
+            //   style: TextStyle(fontSize: 12.0),
+            // ),
           ],
         ),
       ])),
