@@ -80,7 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     desc = '${snapshot.error}';
                   } else {
                     final User user = snapshot.data!;
-                    print("Token : ${user.token}");
+                    debugPrint("Token : ${user.token}");
                   }
                   return AlertDialog(
                     title: Text(title),

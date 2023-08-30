@@ -28,9 +28,9 @@ class MyAppState extends State<MyApp> {
     await _gState.loadState();
     await Future.delayed(const Duration(seconds: 1));
     if (_gState.user == null) {
-      print('User not found');
+      debugPrint('User not found');
     } else {
-      print('User found');
+      debugPrint('User found');
       //connecting to the websocket
       try {
         await _gState.initMessageWebSocket();

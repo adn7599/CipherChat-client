@@ -40,7 +40,7 @@ class _MessageNewScreenState extends State<MessagesNewScreen> {
 
     if (res.statusCode == 200) {
       final resBody = jsonDecode(res.body);
-      //print(resBody);
+      //debugPrint(resBody);
 
       final List<Contact> resList = <Contact>[];
 

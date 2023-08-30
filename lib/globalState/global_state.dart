@@ -78,7 +78,7 @@ class GlobalState extends ChangeNotifier {
       url = 'ws${url.substring(4)}';
     }
     url = '$url/message/websocket/connect';
-    print('websocket url: $url');
+    debugPrint('websocket url: $url');
     final wsChannel = IOWebSocketChannel.connect(url,
         headers: {'Authorization': 'Bearer $token'});
     await wsChannel.ready;
@@ -133,7 +133,7 @@ class GlobalState extends ChangeNotifier {
       await _messageWsChannel?.sink.close();
       // await _messageWsChannel?.sink.done;
     } on Exception catch (_, e) {
-      print("exception while disconnecting ws: $e");
+      debugPrint("exception while disconnecting ws: $e");
     }
   }
 

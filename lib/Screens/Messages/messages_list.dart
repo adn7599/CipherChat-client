@@ -1,3 +1,4 @@
+import 'package:cipher_chat/Screens/User/verify_key_QR.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,9 +25,9 @@ class MessageListState extends State<MessagesListScreen> {
 
   Future<void> _sendMessage(GlobalState gs, String msg) async {
     if (_isNew) {
-      print('Sending messsage | new contact');
+      debugPrint('Sending messsage | new contact');
       if (!_sentFirstMsg) {
-        print('Sending First messsage | new contact');
+        debugPrint('Sending First messsage | new contact');
         await gs.addContact(widget.contact);
         _sentFirstMsg = true;
       }
@@ -51,38 +52,63 @@ class MessageListState extends State<MessagesListScreen> {
   }
 
   // void _scrollListener() {
-  //   print('Inside scroll listener');
+  //   debugPrint('Inside scroll listener');
   //   if (_scrollCont.position.pixels != _scrollCont.position.maxScrollExtent) {
-  //     print('scroll | Not down');
+  //     debugPrint('scroll | Not down');
   //   }else{
-  //     print('scroll | Completely down');
+  //     debugPrint('scroll | Completely down');
   //   }
   // }
 
+  void _handlePopUpMenu(String value) {
+    switch (value) {
+      case 'Verify QR':
+        // debugPrint('selected Verfiy QR');
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => VerifyKeyQRScreen(
+                  conName: widget.contact.name,
+                  conPublicKey: widget.contact.publickey,
+                )));
+        break;
+      default:
+        debugPrint('Invalid option selected');
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    print('isNew : ${widget.isNew}');
+    debugPrint('isNew : ${widget.isNew}');
     return Scaffold(
       appBar: AppBar(
           title: Row(children: [
-        const CircleAvatar(
-          backgroundColor: Colors.white,
-          radius: 20.0,
-          child: Icon(Icons.person, color: Colors.black, size: 24.0),
-        ),
-        const SizedBox(width: 12.0),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.contact.name),
-            // const Text(
-            //   'Online',
-            //   style: TextStyle(fontSize: 12.0),
-            // ),
-          ],
-        ),
-      ])),
+            const CircleAvatar(
+              backgroundColor: Colors.white,
+              radius: 20.0,
+              child: Icon(Icons.person, color: Colors.black, size: 24.0),
+            ),
+            const SizedBox(width: 12.0),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.contact.name),
+                // const Text(
+                //   'Online',
+                //   style: TextStyle(fontSize: 12.0),
+                // ),
+              ],
+            ),
+          ]),
+          actions: [
+            PopupMenuButton(
+                onSelected: _handlePopUpMenu,
+                itemBuilder: (BuildContext context) {
+                  return ['Verify QR'].map((String choice) {
+                    return PopupMenuItem(value: choice, child: Text(choice));
+                  }).toList();
+                }),
+          ]),
       body: Column(
         children: [
           Expanded(
@@ -96,7 +122,7 @@ class MessageListState extends State<MessagesListScreen> {
                       (element) => element.name == widget.contact.name);
                   if (foundIndex == -1) {
                     //not found, actually new
-                    print('Actually new');
+                    debugPrint('Actually new');
                     _isNew = true;
                   }
                 }

@@ -1,5 +1,6 @@
 import 'package:cipher_chat/Screens/Messages/messages_list.dart';
 import 'package:cipher_chat/Screens/Messages/messages_new.dart';
+import 'package:cipher_chat/Screens/User/show_key_QR.dart';
 import 'package:cipher_chat/Screens/User/welcome.dart';
 import 'package:cipher_chat/globalState/global_state.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,12 @@ class MessagesMainScreen extends StatefulWidget {
 class _MessagesMainState extends State<MessagesMainScreen> {
   void _handlePopMenu(String value) {
     switch (value) {
-      case 'settings':
+      case 'Key verification QR':
+        debugPrint('Pressed Key verification QR');
+        final user = Provider.of<GlobalState>(context, listen: false).user!;
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) =>
+                ShowKeyQRScreen(user.username, user.publicKey)));
         break;
       case 'logout':
         showDialog(
@@ -51,7 +57,7 @@ class _MessagesMainState extends State<MessagesMainScreen> {
             });
         break;
       default:
-        print('Invalid option selected');
+        debugPrint('Invalid option selected');
         break;
     }
   }
@@ -65,7 +71,7 @@ class _MessagesMainState extends State<MessagesMainScreen> {
           PopupMenuButton(
               onSelected: _handlePopMenu,
               itemBuilder: (BuildContext context) {
-                return ['settings', 'logout'].map((String choice) {
+                return ['Key verification QR', 'logout'].map((String choice) {
                   return PopupMenuItem(value: choice, child: Text(choice));
                 }).toList();
               })

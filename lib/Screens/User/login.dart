@@ -87,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     final User user = snapshot.data!;
                     String title = 'Logging In';
                     String desc = 'Login Successful';
-                    print("Token : ${user.token}");
+                    debugPrint("Token : ${user.token}");
                     final globalState =
                         Provider.of<GlobalState>(context, listen: false);
 
@@ -176,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final decPrivateKey = aesCbcDec.process(encPrivateKey);
         final privateKey = String.fromCharCodes(decPrivateKey);
-        print('Decrypted private key: $privateKey');
+        debugPrint('Decrypted private key: $privateKey');
 
         final User user = User(
             username: _usernameController.text,
