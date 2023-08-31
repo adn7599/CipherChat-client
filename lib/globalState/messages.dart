@@ -9,6 +9,21 @@ class Message {
   Message.New({required this.type, required this.body}) {
     time = DateTime.now();
   }
+
+  String get timeString {
+    final now = DateTime.now();
+    final hour = time.hour % 12;
+    final ampm = time.hour > 12 ? 'pm' : 'am';
+
+    if (time.year == now.year &&
+        time.month == now.month &&
+        time.day == now.day) {
+      //today
+      return "${hour % 12}:${time.minute} $ampm";
+    } else {
+      return "${time.day}-${time.month}-${time.year} ${hour % 12}:${time.minute} $ampm";
+    }
+  }
 }
 
 enum MessageType { Sent, Received }
@@ -45,15 +60,6 @@ class Contact {
   }
 
   String get getLatestTime {
-    var time = latestMessage.time;
-    var now = DateTime.now();
-    if (time.year == now.year &&
-        time.month == now.month &&
-        time.day == now.day) {
-      //today
-      return "${time.hour}:${time.minute}";
-    } else {
-      return "${time.day}-${time.month}-${time.year} ${time.hour}:${time.minute}";
-    }
+    return latestMessage.timeString;
   }
 }

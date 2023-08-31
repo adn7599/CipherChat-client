@@ -172,15 +172,47 @@ class MessageListState extends State<MessagesListScreen> {
                                           MessageType.Received)
                                       ? Colors.grey.shade200
                                       : Colors.black),
-                              padding: const EdgeInsets.all(16),
-                              child: Text(
-                                contact.messages[index].body,
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    color: contact.messages[index].type ==
+                              padding: const EdgeInsets.only(
+                                  left: 16.0,
+                                  right: 16.0,
+                                  top: 16.0,
+                                  bottom: 8.0),
+                              child: Column(
+                                crossAxisAlignment:
+                                    contact.messages[index].type ==
                                             MessageType.Received
-                                        ? Colors.black
-                                        : Colors.white),
+                                        ? CrossAxisAlignment.start
+                                        : CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    contact.messages[index].body,
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        color: contact.messages[index].type ==
+                                                MessageType.Received
+                                            ? Colors.black
+                                            : Colors.white),
+                                  ),
+                                  const SizedBox(
+                                    height: 8.0,
+                                  ),
+                                  Padding(
+                                    padding: contact.messages[index].type ==
+                                            MessageType.Received
+                                        ? const EdgeInsets.only(right: 16.0)
+                                        : const EdgeInsets.only(left: 16.0),
+                                    child: Text(
+                                      contact.messages[index].timeString,
+                                      style: TextStyle(
+                                          color: contact.messages[index].type ==
+                                                  MessageType.Received
+                                              ? Colors.black
+                                              : Colors.white,
+                                          fontSize: 12.0,
+                                          fontWeight: FontWeight.w200),
+                                    ),
+                                  )
+                                ],
                               )),
                         ),
                       );
