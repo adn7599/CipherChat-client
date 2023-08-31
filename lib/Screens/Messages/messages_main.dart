@@ -1,6 +1,7 @@
 import 'package:cipher_chat/Screens/Messages/messages_list.dart';
 import 'package:cipher_chat/Screens/Messages/messages_new.dart';
 import 'package:cipher_chat/Screens/User/show_key_QR.dart';
+import 'package:cipher_chat/Screens/User/update_master_key.dart';
 import 'package:cipher_chat/Screens/User/update_password.dart';
 import 'package:cipher_chat/Screens/User/welcome.dart';
 import 'package:cipher_chat/globalState/global_state.dart';
@@ -31,6 +32,8 @@ class _MessagesMainState extends State<MessagesMainScreen> {
             MaterialPageRoute(builder: (context) => UpdatePasswordScreen()));
         break;
       case 'Update master secret key':
+        Navigator.of(context).push(MaterialPageRoute(
+            builder: (context) => UpdateMasterKeyPasswordScreen()));
         break;
       case 'logout':
         showDialog(
