@@ -17,6 +17,7 @@ class Contact {
   String name;
   String profilePic = '';
   String publickey;
+  int newMessageCount;
 
   // List<Message> messages = <Message>[
   //   Message.New(type: 'sent', body: 'text1'),
@@ -34,7 +35,10 @@ class Contact {
   List<Message> messages = <Message>[];
 
   Contact(
-      {required this.name, required this.profilePic, required this.publickey});
+      {required this.name,
+      required this.profilePic,
+      required this.publickey,
+      required this.newMessageCount});
 
   Message get latestMessage {
     return messages.last;

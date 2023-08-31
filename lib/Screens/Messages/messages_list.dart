@@ -51,6 +51,11 @@ class MessageListState extends State<MessagesListScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   // void _scrollListener() {
   //   debugPrint('Inside scroll listener');
   //   if (_scrollCont.position.pixels != _scrollCont.position.maxScrollExtent) {
@@ -134,8 +139,13 @@ class MessageListState extends State<MessagesListScreen> {
                   } else {
                     contact = contacts[contacts
                         .indexWhere((con) => con.name == widget.contact.name)];
+                    //clearing newMessageIcon on main screen
                   }
                 }
+
+                Future.delayed(const Duration(seconds: 3), () {
+                  gs.clearNewMessageCount(widget.contact);
+                });
 
                 return ListView.builder(
                     controller: _scrollCont,

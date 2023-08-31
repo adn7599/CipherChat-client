@@ -62,6 +62,7 @@ class GlobalState extends ChangeNotifier {
 
   Future<void> addMessage(Contact con, Message msg) async {
     final c = _contacts.firstWhere((element) => element.name == con.name);
+    // c.newMessageCount++;
     c.messages.add(msg);
     await _db!.addMessage(con, msg);
     // notifyListeners();
@@ -172,7 +173,11 @@ class GlobalState extends ChangeNotifier {
 
         final publicKey = jsonDecode(res.body)[0]['public_key'];
 
-        final con = Contact(name: sender, profilePic: '', publickey: publicKey);
+        final con = Contact(
+            name: sender,
+            profilePic: '',
+            publickey: publicKey,
+            newMessageCount: 0);
         await addContact(con);
         conIndex = _contacts.length - 1;
       }
@@ -203,6 +208,8 @@ class GlobalState extends ChangeNotifier {
           time: DateTime.fromMillisecondsSinceEpoch(
               int.parse(decResult['time'])));
       addMessage(con, msg);
+      incrementNewMessageCount(con);
+      con.newMessageCount = con.newMessageCount + 1;
     }
     notifyListeners();
   }
@@ -243,7 +250,11 @@ class GlobalState extends ChangeNotifier {
 
         final publicKey = jsonDecode(res.body)[0]['public_key'];
 
-        final con = Contact(name: sender, profilePic: '', publickey: publicKey);
+        final con = Contact(
+            name: sender,
+            profilePic: '',
+            publickey: publicKey,
+            newMessageCount: 0);
         await addContact(con);
         conIndex = _contacts.length - 1;
       }
@@ -275,6 +286,10 @@ class GlobalState extends ChangeNotifier {
           time: DateTime.fromMillisecondsSinceEpoch(
               int.parse(decResult['time'])));
       addMessage(con, msg);
+      debugPrint('Previous Message count: ${con.newMessageCount}');
+      incrementNewMessageCount(con);
+      con.newMessageCount = con.newMessageCount + 1;
+      debugPrint('New Message count: ${con.newMessageCount}');
       notifyListeners();
     }
   }
@@ -302,6 +317,19 @@ class GlobalState extends ChangeNotifier {
     });
     _messageWsChannel!.sink.add(json);
     await addMessage(con, msg);
+    con.newMessageCount = con.newMessageCount + 1;
+    notifyListeners();
+  }
+
+  Future<void> incrementNewMessageCount(Contact con) async {
+    await _db!.setNewMessageCount(con.name, con.newMessageCount + 1);
+  }
+
+  Future<void> clearNewMessageCount(Contact con) async {
+    if (_contacts.contains(con)) {
+      await _db!.setNewMessageCount(con.name, 0);
+      con.newMessageCount = 0;
+    }
     notifyListeners();
   }
 }

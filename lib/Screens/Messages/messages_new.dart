@@ -53,7 +53,10 @@ class _MessageNewScreenState extends State<MessagesNewScreen> {
           continue;
         }
         final newCon = Contact(
-            name: con['id'], publickey: con['public_key'], profilePic: '');
+            name: con['id'],
+            publickey: con['public_key'],
+            profilePic: '',
+            newMessageCount: 0);
         resList.add(newCon);
       }
 

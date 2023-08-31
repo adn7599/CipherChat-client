@@ -165,9 +165,21 @@ class _MessagesMainState extends State<MessagesMainScreen> {
                             ],
                           ),
                           const Spacer(),
-                          Text(contacts[index].getLatestTime,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w100, fontSize: 16.0)),
+                          Row(
+                            children: [
+                              contacts[index].newMessageCount > 0
+                                  ? Badge.count(
+                                      count: contacts[index].newMessageCount,
+                                      backgroundColor: Colors.green,
+                                    )
+                                  : const SizedBox.shrink(),
+                              SizedBox(width: 8.0),
+                              Text(contacts[index].getLatestTime,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w100,
+                                      fontSize: 16.0)),
+                            ],
+                          ),
                         ],
                       ),
                     ),

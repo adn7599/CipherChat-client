@@ -31,7 +31,7 @@ class MyDatabase {
         await db.execute(
             'CREATE TABLE USER_BACKUP(username TEXT, token TEXT,master_key TEXT, public_key TEXT, private_key TEXT, server_host TEXT);');
         await db.execute(
-            'CREATE TABLE CONTACTS(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT, public_key TEXT);');
+            'CREATE TABLE CONTACTS(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT, public_key TEXT, new_message_count INTEGER);');
         await db.execute(
             'CREATE TABLE CHATS(id INTEGER PRIMARY KEY AUTOINCREMENT,username TEXT,type TEXT, body TEXT, time INTEGER);');
       },
@@ -124,10 +124,10 @@ class MyDatabase {
 
     for (var e in res) {
       cons.add(Contact(
-        name: e['username'] as String,
-        profilePic: '',
-        publickey: e['public_key'] as String,
-      ));
+          name: e['username'] as String,
+          profilePic: '',
+          publickey: e['public_key'] as String,
+          newMessageCount: e['new_message_count'] as int));
     }
 
     return cons;
@@ -172,5 +172,11 @@ class MyDatabase {
       msg.body,
       msg.time.millisecondsSinceEpoch
     ]);
+  }
+
+  Future<void> setNewMessageCount(String conName, int newCount) async {
+    await _database.rawUpdate(
+        'UPDATE CONTACTS SET new_message_count = ? WHERE username = ?',
+        [newCount, conName]);
   }
 }
