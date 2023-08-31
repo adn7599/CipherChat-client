@@ -1,6 +1,7 @@
 import 'package:cipher_chat/Screens/Messages/messages_list.dart';
 import 'package:cipher_chat/Screens/Messages/messages_new.dart';
 import 'package:cipher_chat/Screens/User/show_key_QR.dart';
+import 'package:cipher_chat/Screens/User/update_password.dart';
 import 'package:cipher_chat/Screens/User/welcome.dart';
 import 'package:cipher_chat/globalState/global_state.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,12 @@ class _MessagesMainState extends State<MessagesMainScreen> {
         Navigator.of(context).push(MaterialPageRoute(
             builder: (context) =>
                 ShowKeyQRScreen(user.username, user.publicKey)));
+        break;
+      case 'Update password':
+        Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => UpdatePasswordScreen()));
+        break;
+      case 'Update master secret key':
         break;
       case 'logout':
         showDialog(
@@ -71,7 +78,12 @@ class _MessagesMainState extends State<MessagesMainScreen> {
           PopupMenuButton(
               onSelected: _handlePopMenu,
               itemBuilder: (BuildContext context) {
-                return ['Key verification QR', 'logout'].map((String choice) {
+                return [
+                  'Key verification QR',
+                  'Update password',
+                  'Update master secret key',
+                  'logout'
+                ].map((String choice) {
                   return PopupMenuItem(value: choice, child: Text(choice));
                 }).toList();
               })
@@ -173,7 +185,7 @@ class _MessagesMainState extends State<MessagesMainScreen> {
                                       backgroundColor: Colors.green,
                                     )
                                   : const SizedBox.shrink(),
-                              SizedBox(width: 8.0),
+                              const SizedBox(width: 8.0),
                               Text(contacts[index].getLatestTime,
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w100,
